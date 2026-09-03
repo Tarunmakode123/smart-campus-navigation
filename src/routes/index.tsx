@@ -8,11 +8,15 @@ import {
   MessageSquareText,
   Navigation,
   QrCode,
+  Route as RouteIcon,
   Search,
+  ShieldCheck,
+  Smartphone,
   UserRound,
   X,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { QrCodeCanvas } from "@/components/QrCodeCanvas";
 import { CATEGORIES, type Location, useLocations } from "@/lib/locations";
 import { clearEntryPoint, useEntryPoint } from "@/lib/entry-point";
 
@@ -44,10 +48,36 @@ const PURPOSES = [
   { label: "Kitchen access", hint: "Shortest route via Dining Room", icon: MapPin },
 ];
 
+const VALUE_POINTS = [
+  {
+    title: "No more asking directions",
+    text: "Visitors scan one QR at the gate and understand where to go without calling someone.",
+    icon: QrCode,
+  },
+  {
+    title: "Purpose becomes destination",
+    text: "The app can map 'food', 'prayer', 'meet person' or 'department work' to the right place.",
+    icon: Search,
+  },
+  {
+    title: "Shortest indoor route",
+    text: "Routes are calculated from a real graph of rooms, corridors, gates and QR checkpoints.",
+    icon: RouteIcon,
+  },
+];
+
+const PILOT_STEPS = [
+  "Scan Main Gate QR",
+  "Choose room or purpose",
+  "Follow measured route",
+];
+
 function Home() {
   const locations = useLocations();
   const entryId = useEntryPoint();
   const entry = locations.find((l) => l.id === entryId);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const qrTarget = origin ? `${origin}/qr/main-gate` : "/qr/main-gate";
   const [query, setQuery] = useState("");
   const [purpose, setPurpose] = useState<string>("All");
   const [cat, setCat] = useState<string>("All");
@@ -79,54 +109,79 @@ function Home() {
     <div className="min-h-screen bg-gradient-subtle pb-20">
       <AppHeader />
 
-      <main className="mx-auto max-w-5xl px-4 pb-10 pt-4">
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="overflow-hidden rounded-3xl bg-gradient-hero text-primary-foreground shadow-elegant">
-            <div className="px-5 py-6 sm:px-7 sm:py-8">
+      <main className="mx-auto max-w-6xl px-4 pb-10 pt-4">
+        <section className="overflow-hidden rounded-3xl bg-[linear-gradient(135deg,oklch(0.18_0.06_245)_0%,oklch(0.34_0.12_255)_48%,oklch(0.35_0.12_185)_100%)] text-white shadow-elegant">
+          <div className="grid min-h-[calc(100vh-6.5rem)] gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center lg:p-9">
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
-                <QrCode className="h-3.5 w-3.5" />
-                Main Gate QR home pilot
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Indoor navigation for campuses, offices and homes
               </div>
-              <h1 className="mt-4 max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
-                Choose a room. The app gives the shortest indoor route.
+              <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight sm:text-6xl">
+                Scan once. Find the right place. Follow the route.
               </h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 opacity-90 sm:text-base">
-                This pilot uses your real home layout and metre distances from Main Gate to each
-                room. After testing here, the same model can scale to any campus.
+              <p className="mt-4 max-w-2xl text-base leading-7 text-white/84 sm:text-lg">
+                Smart Navigator turns confusing buildings into QR-based walking guidance. A visitor
+                scans at the entry gate, chooses their work or destination, and gets the shortest
+                indoor route with clear steps.
               </p>
 
-              <div className="mt-6 flex items-center gap-2 rounded-2xl bg-white p-2 shadow-card">
-                <Search className="ml-2 h-5 w-5 shrink-0 text-muted-foreground" />
-                <input
-                  autoFocus
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search room, work, purpose or area"
-                  className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
-                />
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                {PILOT_STEPS.map((step, index) => (
+                  <div
+                    key={step}
+                    className="rounded-2xl border border-white/14 bg-white/10 p-3 backdrop-blur"
+                  >
+                    <div className="grid h-8 w-8 place-items-center rounded-xl bg-white text-primary">
+                      {index + 1}
+                    </div>
+                    <div className="mt-3 text-sm font-semibold">{step}</div>
+                  </div>
+                ))}
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link
-                  to="/admin/qr"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-semibold text-primary shadow-card transition-transform active:scale-[0.98]"
-                >
-                  <QrCode className="h-4 w-4" />
-                  Main Gate QR
-                </Link>
+              <div className="mt-6 flex flex-wrap gap-2">
                 <Link
                   to="/qr/$id"
                   params={{ id: "main-gate" }}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2 text-sm font-semibold text-primary-foreground backdrop-blur transition-colors hover:bg-white/15"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-primary shadow-card transition-transform active:scale-[0.98]"
                 >
-                  <Navigation className="h-4 w-4" />
-                  Test scan flow
+                  <Smartphone className="h-4 w-4" />
+                  Try Main Gate scan
+                </Link>
+                <Link
+                  to="/admin/qr"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/15"
+                >
+                  <QrCode className="h-4 w-4" />
+                  Print QR code
                 </Link>
               </div>
             </div>
-          </div>
 
-          <HomeMap locations={locations} />
+            <div className="grid gap-4">
+              <div className="rounded-3xl border border-white/15 bg-white p-4 text-foreground shadow-elegant">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Live pilot QR
+                    </div>
+                    <div className="text-lg font-bold">Main Gate Entry</div>
+                  </div>
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-primary-foreground">
+                    <QrCode className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="mt-4 grid place-items-center rounded-2xl bg-secondary p-4">
+                  <QrCodeCanvas value={qrTarget} size={210} label="Main Gate navigation QR" />
+                </div>
+                <div className="mt-3 break-all text-center text-[11px] text-muted-foreground">
+                  /qr/main-gate
+                </div>
+              </div>
+              <HomeMap locations={locations} />
+            </div>
+          </div>
         </section>
 
         {entry && (
@@ -150,7 +205,52 @@ function Home() {
           </div>
         )}
 
+        <section className="mt-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="text-xs font-semibold uppercase tracking-wide text-primary">
+              What we are solving
+            </div>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+              People get lost because buildings do not behave like Google Maps.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+              Outdoor GPS stops helping at the gate. This product uses QR checkpoints, mapped
+              rooms, and real walking distances to guide people inside private campuses and large
+              buildings.
+            </p>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {VALUE_POINTS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-3 text-base font-bold tracking-tight">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="mt-6">
+          <div className="mb-4 rounded-3xl border border-border bg-card p-4 shadow-card">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+              <Search className="h-4 w-4 text-primary" />
+              Live home pilot search
+            </div>
+            <div className="flex items-center gap-2 rounded-2xl border border-input bg-background p-2">
+              <Search className="ml-2 h-5 w-5 shrink-0 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search room, work, purpose or area"
+                className="min-w-0 flex-1 bg-transparent py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+            </div>
+          </div>
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
               <h2 className="text-lg font-bold tracking-tight">Where do you want to go?</h2>

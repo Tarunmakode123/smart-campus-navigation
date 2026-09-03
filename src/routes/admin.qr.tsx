@@ -1,16 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Printer, QrCode } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { QrCodeCanvas } from "@/components/QrCodeCanvas";
 import { useLocations } from "@/lib/locations";
 
 export const Route = createFileRoute("/admin/qr")({
   head: () => ({ meta: [{ title: "QR Codes — Smart Navigator" }] }),
   component: QrCodesPage,
 });
-
-function qrUrl(data: string, size = 320) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=10&data=${encodeURIComponent(data)}`;
-}
 
 function QrCodesPage() {
   const locations = useLocations();
@@ -51,23 +48,19 @@ function QrCodesPage() {
 
         <div className="mt-6 grid grid-cols-1 gap-4">
           {entryLocations.map((loc) => {
-            const target = `${origin}/qr/${loc.id}`;
+            const target = origin ? `${origin}/qr/${loc.id}` : `/qr/${loc.id}`;
             return (
               <div
                 key={loc.id}
                 className="flex flex-col items-center rounded-2xl border border-border bg-card p-6 text-center shadow-card print:break-inside-avoid print:border-0 print:shadow-none"
               >
                 <div className="rounded-xl bg-white p-4 shadow-card print:shadow-none">
-                  <img
-                    src={qrUrl(target, 520)}
-                    alt={`QR code for ${loc.name}`}
-                    className="h-64 w-64"
-                  />
+                  <QrCodeCanvas value={target} size={256} label={`QR code for ${loc.name}`} />
                 </div>
                 <div className="mt-4 text-lg font-bold">{loc.name}</div>
                 <div className="text-sm text-muted-foreground">Scan here to start navigation</div>
                 <div className="mt-1 break-all text-[10px] text-muted-foreground/70 print:hidden">
-                  {target}
+                  /qr/{loc.id}
                 </div>
                 <Link
                   to="/qr/$id"
