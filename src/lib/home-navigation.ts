@@ -95,30 +95,103 @@ export function calculateHomeRoute(startId: string, destinationId: string): Rout
   };
 }
 
-export function buildRouteSteps(route: RouteResult, locations: Location[]) {
-  const byId = new Map(locations.map((loc) => [loc.id, loc.name]));
+export type TurnAction = "straight" | "turn-right" | "turn-left" | "stairs" | "lift" | "arrive";
+
+export type DetailedStep = {
+  text: string;
+  action: TurnAction;
+  fromName: string;
+  toName: string;
+  metres: number;
+  remainingMetres: number;
+  progressPercent: number;
+};
+
+export function buildDetailedRouteSteps(route: RouteResult, locations: Location[]): DetailedStep[] {
+  const byId = new Map(locations.map((loc) => [loc.id, loc]));
 
   if (route.nodes.length === 1) {
-    return [`You are already at ${byId.get(route.nodes[0]) ?? "this point"}.`];
+    const locName = byId.get(route.nodes[0])?.name ?? route.nodes[0];
+    return [
+      {
+        text: `You are already at ${locName}.`,
+        action: "arrive",
+        fromName: locName,
+        toName: locName,
+        metres: 0,
+        remainingMetres: 0,
+        progressPercent: 100,
+      },
+    ];
   }
 
+  // Calculate cumulative remaining distances
+  const total = route.totalMetres || 1;
+
   return route.edges.map((edge, index) => {
-    const from = byId.get(route.nodes[index]) ?? route.nodes[index];
-    const to = byId.get(route.nodes[index + 1]) ?? route.nodes[index + 1];
+    const fromLoc = byId.get(route.nodes[index]);
+    const toLoc = byId.get(route.nodes[index + 1]);
+    const fromName = fromLoc?.name ?? route.nodes[index];
+    const toName = toLoc?.name ?? route.nodes[index + 1];
     const distance = formatMetres(edge.metres);
     const type = edge.edgeType ?? "walk";
 
+    // Compute remaining distance from this step to final destination
+    const traveledSoFar = route.edges.slice(0, index).reduce((acc, e) => acc + e.metres, 0);
+    const remainingMetres = Number((total - traveledSoFar).toFixed(1));
+    const progressPercent = Math.round((traveledSoFar / total) * 100);
+
+    let action: TurnAction = "straight";
+    let text = "";
+
     if (type === "stairs") {
-      return `Take the stairs from ${from} to ${to} (${distance}).`;
-    }
-    if (type === "lift") {
-      return `Take the lift from ${from} to ${to} (${distance}).`;
+      action = "stairs";
+      text = `Take the stairs from ${fromName} to ${toName} (${distance}).`;
+    } else if (type === "lift") {
+      action = "lift";
+      text = `Take the lift from ${fromName} to ${toName} (${distance}).`;
+    } else {
+      // Determine direction by checking relative map coordinate vectors if available
+      if (fromLoc?.mapX != null && fromLoc?.mapY != null && toLoc?.mapX != null && toLoc?.mapY != null) {
+        const dx = toLoc.mapX - fromLoc.mapX;
+        if (dx > 25) {
+          action = "turn-right";
+          text = index === 0
+            ? `Start from ${fromName}, turn right and move ${distance} to ${toName}.`
+            : `Turn right from ${fromName} and move ${distance} to ${toName}.`;
+        } else if (dx < -15) {
+          action = "turn-left";
+          text = index === 0
+            ? `Start from ${fromName}, turn left and move ${distance} to ${toName}.`
+            : `Turn left from ${fromName} and move ${distance} to ${toName}.`;
+        } else {
+          action = "straight";
+          text = index === 0
+            ? `Start from ${fromName}, move straight ${distance} to ${toName}.`
+            : `Continue straight ${distance} from ${fromName} to ${toName}.`;
+        }
+      } else {
+        action = index === 0 ? "straight" : index % 2 === 1 ? "turn-right" : "turn-left";
+        text = index === 0
+          ? `Start from ${fromName}, move ${distance} to ${toName}.`
+          : `Move ${distance} from ${fromName} to ${toName}.`;
+      }
     }
 
-    return index === 0
-      ? `Start from ${from}, then move ${distance} to ${to}.`
-      : `Continue ${distance} from ${from} to ${to}.`;
+    return {
+      text,
+      action,
+      fromName,
+      toName,
+      metres: edge.metres,
+      remainingMetres,
+      progressPercent,
+    };
   });
+}
+
+export function buildRouteSteps(route: RouteResult, locations: Location[]) {
+  return buildDetailedRouteSteps(route, locations).map((s) => s.text);
 }
 
 export function formatMetres(value: number) {

@@ -80,6 +80,7 @@ function Home() {
   const [query, setQuery] = useState("");
   const [purpose, setPurpose] = useState<string>("All");
   const [cat, setCat] = useState<string>("All");
+  const [showMapDirectory, setShowMapDirectory] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -347,11 +348,44 @@ function Home() {
           </div>
 
           {results.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#12203A]/20 bg-white p-8 text-center">
-              <MapPin className="mx-auto h-7 w-7 text-[#5B6472]" />
-              <p className="mt-2 font-sans text-xs text-[#5B6472]">
-                No room matches this query. Try searching for another room, building, or area.
+            <div className="rounded-xl border border-dashed border-[#E8944A]/40 bg-[#E8944A]/5 p-8 text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#12203A] text-[#E8944A]">
+                <MapPin className="h-6 w-6" />
+              </div>
+              <h3 className="mt-3 font-display text-base font-bold text-[#12203A]">
+                Location &quot;{query || purpose}&quot; is not present in our building system.
+              </h3>
+              <p className="mt-1 font-sans text-xs text-[#5B6472]">
+                We couldn&apos;t find an exact match for this room or department in our active graph.
               </p>
+              <div className="mt-4 flex justify-center gap-2">
+                <button
+                  onClick={() => setShowMapDirectory((v) => !v)}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#12203A] px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white shadow-sm hover:bg-[#1E2D4A]"
+                >
+                  <RouteIcon className="h-4 w-4 text-[#E8944A]" />
+                  {showMapDirectory ? "Hide Interactive Map" : "View Interactive Map Directory"}
+                </button>
+                <button
+                  onClick={() => {
+                    setQuery("");
+                    setPurpose("All");
+                    setCat("All");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#12203A]/20 bg-white px-3.5 py-2 font-sans text-xs font-semibold text-[#5B6472] hover:text-[#12203A]"
+                >
+                  Clear Search
+                </button>
+              </div>
+
+              {showMapDirectory && (
+                <div className="mt-6 text-left">
+                  <div className="mb-2 font-display text-xs font-bold uppercase text-[#12203A]">
+                    Select Available Location From Blueprint Map:
+                  </div>
+                  <HomeMap locations={locations} />
+                </div>
+              )}
             </div>
           ) : (
             <ul className="grid gap-2.5 md:grid-cols-2">
