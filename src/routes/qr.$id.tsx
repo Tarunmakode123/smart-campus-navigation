@@ -27,30 +27,32 @@ function QrLanding() {
   if (!loc) return <Navigate to="/" />;
 
   return (
-    <div className="grid min-h-screen place-items-center bg-gradient-hero p-6 text-primary-foreground">
+    <div className="grid min-h-screen place-items-center bg-[#12203A] bg-grid-dark p-6 text-[#F7F5F0]">
       <div className="w-full max-w-sm text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/15 backdrop-blur">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-white/20 bg-[#E8944A] text-white shadow-lg">
           <MapPin className="h-7 w-7" />
         </div>
-        <p className="mt-5 text-sm opacity-80">You are here</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">{loc.name}</h1>
-        <p className="mt-2 text-sm opacity-85">
-          Welcome to Smart Navigator. Search any destination and we'll guide you from here.
+        <p className="mt-4 font-display text-xs font-bold uppercase tracking-widest text-[#8B98AD]">
+          YOU ARE AT CHECKPOINT
+        </p>
+        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-[#F7F5F0]">{loc.name}</h1>
+        <p className="mt-2 font-sans text-xs text-[#8B98AD]">
+          Welcome to Smart Navigator. Choose your target room or purpose to receive immediate indoor directions.
         </p>
 
-        <div className="mt-7 space-y-2">
+        <div className="mt-6 space-y-2.5">
           <Link
             to="/"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3.5 text-sm font-semibold text-primary shadow-elegant transition-transform active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-[#E8944A] px-4 py-3 font-display text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#d88237]"
           >
-            <Search className="h-4 w-4" /> Find a destination
+            <Search className="h-4 w-4" /> Search Building Directory
           </Link>
           <Link
             to="/location/$id"
             params={{ id: loc.id }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20"
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-[#F7F5F0]/20 bg-[#1E2D4A] px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-[#F7F5F0] transition-colors hover:bg-[#F7F5F0]/10"
           >
-            <Navigation className="h-4 w-4" /> About this place
+            <Navigation className="h-4 w-4 text-[#E8944A]" /> Location Details
           </Link>
         </div>
       </div>

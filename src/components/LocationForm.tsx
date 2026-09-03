@@ -125,6 +125,14 @@ export function LocationForm({ initial }: { initial?: Location }) {
             ))}
           </select>
         </Field>
+        <Field label="Building">
+          <input
+            value={f.building ?? ""}
+            onChange={(e) => set("building", e.target.value)}
+            className={inputCls}
+            placeholder="Home, Main Block, Science Tower…"
+          />
+        </Field>
         <Field label="Floor">
           <input
             value={f.floor ?? ""}
@@ -210,22 +218,22 @@ export function LocationForm({ initial }: { initial?: Location }) {
 
       <button
         type="submit"
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-hero px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform active:scale-[0.98]"
+        className="flex w-full items-center justify-center gap-2 rounded-md bg-[#E8944A] px-4 py-3 font-display text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#d88237] active:scale-[0.98]"
       >
         <Save className="h-4 w-4" />
-        {initial ? "Save changes" : "Create location"}
+        {initial ? "Save Location Changes" : "Create New Location"}
       </button>
     </form>
   );
 }
 
 const inputCls =
-  "w-full rounded-xl border border-input bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-md border border-[#12203A]/20 bg-white px-3 py-2 font-sans text-xs text-[#12203A] placeholder:text-[#5B6472] focus:border-[#E8944A] focus:outline-none focus:ring-1 focus:ring-[#E8944A]";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="mb-1 block font-display text-[10px] font-bold uppercase tracking-wider text-[#5B6472]">{label}</span>
       {children}
     </label>
   );

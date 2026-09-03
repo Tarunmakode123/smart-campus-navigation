@@ -81,59 +81,61 @@ function NavigatePage() {
       </div>
 
       <main className="mx-auto mt-4 grid max-w-5xl gap-4 px-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
-          <div className="relative h-[520px] bg-slate-900 text-white">
+        <section className="overflow-hidden rounded-xl border border-[#12203A]/20 bg-[#12203A] text-[#F7F5F0] shadow-md">
+          <div className="relative h-[480px] bg-grid-dark text-white">
             {dest.image && (
               <img
                 src={dest.image}
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover opacity-40"
+                className="absolute inset-0 h-full w-full object-cover opacity-25"
               />
             )}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0,rgba(2,6,23,0.2)_34%,rgba(2,6,23,0.88)_78%)]" />
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-              <div className="rounded-full bg-black/35 px-3 py-1 text-xs font-medium backdrop-blur">
-                Indoor route preview
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0,rgba(18,32,58,0.3)_34%,rgba(18,32,58,0.95)_80%)]" />
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-3.5">
+              <div className="rounded-md border border-[#F7F5F0]/20 bg-[#1E2D4A]/90 px-3 py-1 font-mono text-[11px] font-semibold text-[#F7F5F0] backdrop-blur">
+                WAYFINDING TERMINAL • {entry?.building ?? "HOME"}
               </div>
               <button
                 onClick={() => setVoice((v) => !v)}
-                className="grid h-10 w-10 place-items-center rounded-full bg-black/35 backdrop-blur"
+                className="grid h-9 w-9 place-items-center rounded-md border border-[#F7F5F0]/20 bg-[#1E2D4A] text-[#F7F5F0] backdrop-blur hover:bg-[#E8944A]"
                 aria-label={voice ? "Turn voice guidance off" : "Turn voice guidance on"}
               >
                 {voice ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
               </button>
             </div>
 
-            <div className="absolute left-1/2 top-[36%] -translate-x-1/2 text-center">
-              <div className="mx-auto grid h-24 w-24 place-items-center rounded-full border border-white/30 bg-primary/90 shadow-elegant">
-                <Navigation className="h-12 w-12" />
+            <div className="absolute left-1/2 top-[34%] -translate-x-1/2 text-center w-11/12 max-w-sm">
+              <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-white/20 bg-[#E8944A] text-white shadow-lg">
+                <Navigation className="h-9 w-9" />
               </div>
-              <div className="mt-4 rounded-2xl bg-black/55 px-4 py-3 backdrop-blur">
-                <div className="text-xs uppercase tracking-wide text-white/70">Next direction</div>
-                <div className="mt-1 text-lg font-bold">{currentStep}</div>
+              <div className="mt-3 rounded-lg border border-[#F7F5F0]/20 bg-[#12203A]/90 p-3 backdrop-blur">
+                <div className="font-display text-[10px] font-bold uppercase tracking-widest text-[#8B98AD]">
+                  CURRENT DIRECTION STEP
+                </div>
+                <div className="mt-1 font-sans text-base font-bold text-[#F7F5F0]">{currentStep}</div>
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <div className="rounded-3xl bg-white p-4 text-foreground shadow-elegant">
+            <div className="absolute bottom-0 left-0 right-0 p-3.5">
+              <div className="rounded-xl border border-[#12203A]/20 bg-white p-4 text-[#12203A] shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Destination
+                    <div className="font-display text-[10px] font-bold uppercase tracking-widest text-[#5B6472]">
+                      TARGET DESTINATION
                     </div>
-                    <h1 className="mt-1 truncate text-xl font-bold tracking-tight">{dest.name}</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      From {entry?.name ?? "Main Gate"} by QR route graph
+                    <h1 className="mt-0.5 truncate font-display text-lg font-bold text-[#12203A]">{dest.name}</h1>
+                    <p className="mt-0.5 font-sans text-xs text-[#5B6472]">
+                      From {entry?.name ?? "Main Gate"} ({dest.building ?? "Home"} • {dest.floor ?? "Ground Floor"})
                     </p>
                   </div>
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#12203A] text-[#E8944A]">
                     <MapPin className="h-5 w-5" />
                   </div>
                 </div>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F7F5F0]">
                   <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${started ? progress : 8}%` }}
+                    className="h-full rounded-full bg-[#E8944A] transition-all duration-500"
+                    style={{ width: `${started ? progress : 10}%` }}
                   />
                 </div>
               </div>
@@ -141,48 +143,59 @@ function NavigatePage() {
           </div>
         </section>
 
-        <aside className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+        <aside className="space-y-3.5">
+          <div className="grid grid-cols-2 gap-2.5">
             <Stat
-              icon={<Ruler className="h-4 w-4" />}
+              icon={<Ruler className="h-4 w-4 text-[#E8944A]" />}
               label="Distance"
               value={formatMetres(route.totalMetres)}
             />
             <Stat
-              icon={<Footprints className="h-4 w-4" />}
-              label="Walking"
+              icon={<Footprints className="h-4 w-4 text-[#E8944A]" />}
+              label="Est. Walk Time"
               value={`${minutes} min`}
             />
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <h2 className="text-sm font-semibold">Route steps</h2>
-            <ol className="mt-3 space-y-3">
-              {steps.map((step, index) => (
-                <li key={step} className="flex items-start gap-3">
-                  <button
-                    onClick={() => {
-                      setStarted(true);
-                      setStepIndex(index);
-                    }}
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
-                      index <= stepIndex && started
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-muted-foreground"
-                    }`}
-                    aria-label={`Show step ${index + 1}`}
-                  >
-                    {index + 1}
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground">{step}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {index === 0 ? "Start" : index === steps.length - 1 ? "Arrive" : "Continue"}
+          <div className="rounded-xl border border-[#12203A]/14 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xs font-bold uppercase tracking-wider text-[#12203A]">
+                Physical Route Steps
+              </h2>
+              <span className="font-mono text-[10px] font-semibold text-[#5B6472]">{steps.length} STOPS</span>
+            </div>
+            <ol className="mt-3 space-y-2.5">
+              {steps.map((step, index) => {
+                const isCurrent = index === stepIndex && started;
+                const isPassed = index < stepIndex && started;
+                return (
+                  <li key={step} className="flex items-start gap-2.5">
+                    <button
+                      onClick={() => {
+                        setStarted(true);
+                        setStepIndex(index);
+                      }}
+                      className={`font-display grid h-7 w-7 shrink-0 place-items-center rounded text-xs font-bold transition-colors ${
+                        isCurrent
+                          ? "bg-[#E8944A] text-white"
+                          : isPassed
+                          ? "bg-[#7A9B76] text-white"
+                          : "bg-[#12203A]/8 text-[#12203A]"
+                      }`}
+                      aria-label={`Select step ${index + 1}`}
+                    >
+                      0{index + 1}
+                    </button>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <div className="font-sans text-xs font-semibold text-[#12203A]">{step}</div>
+                      <div className="font-mono text-[10px] text-[#5B6472]">
+                        {index === 0 ? "START CHECKPOINT" : index === steps.length - 1 ? "FINAL DESTINATION" : `LEG 0${index}`}
+                      </div>
                     </div>
-                  </div>
-                  <ChevronRight className="mt-1 h-4 w-4 text-muted-foreground" />
-                </li>
-              ))}
+                    <ChevronRight className="mt-1 h-3.5 w-3.5 shrink-0 text-[#5B6472]" />
+                  </li>
+                );
+              })}
             </ol>
           </div>
 
@@ -201,10 +214,10 @@ function NavigatePage() {
               setStarted((s) => !s);
               if (!started) setStepIndex(0);
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-hero px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-elegant transition-transform active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-[#E8944A] px-4 py-3 font-display text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:bg-[#d88237] active:scale-[0.98]"
           >
             {started ? <Navigation className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {started ? "Navigation running" : "Start navigation"}
+            {started ? "Navigation Active" : "Start Guided Navigation"}
           </button>
         </aside>
       </main>
@@ -214,11 +227,11 @@ function NavigatePage() {
 
 function Stat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+    <div className="rounded-xl border border-[#12203A]/14 bg-white p-3 shadow-sm">
+      <div className="flex items-center gap-1.5 font-display text-[10px] font-bold uppercase tracking-wider text-[#5B6472]">
         {icon} {label}
       </div>
-      <div className="mt-1 text-xl font-bold tracking-tight text-foreground">{value}</div>
+      <div className="mt-1 font-display text-lg font-bold text-[#12203A]">{value}</div>
     </div>
   );
 }
@@ -237,25 +250,22 @@ function MiniMap({
     : `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
 
   return (
-    <div className="relative h-52 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.94_0.012_240)_1px,transparent_1px),linear-gradient(0deg,oklch(0.94_0.012_240)_1px,transparent_1px)] bg-[size:28px_28px]" />
+    <div className="relative h-48 overflow-hidden rounded-xl border border-[#12203A]/14 bg-[#12203A] shadow-sm">
+      <div className="absolute inset-0 bg-grid-dark" />
       <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
         <path
           d={path}
           fill="none"
-          stroke="var(--color-primary)"
-          strokeWidth="2"
+          stroke="#E8944A"
+          strokeWidth="2.5"
           strokeLinecap="round"
-          strokeDasharray="4 3"
+          strokeDasharray="4 2"
+          className="transition-all duration-700 ease-in-out"
         />
-        <rect x="12" y="47" width="56" height="24" rx="2" fill="oklch(0.91 0.02 240 / 0.55)" />
-        <rect x="58" y="72" width="32" height="18" rx="2" fill="oklch(0.91 0.02 240 / 0.55)" />
-        <rect x="60" y="47" width="30" height="17" rx="2" fill="oklch(0.88 0.035 150 / 0.55)" />
-        <rect x="58" y="25" width="32" height="21" rx="2" fill="oklch(0.89 0.04 85 / 0.55)" />
-        <rect x="58" y="7" width="32" height="14" rx="2" fill="oklch(0.92 0.035 70 / 0.55)" />
-        <rect x="12" y="20" width="42" height="16" rx="2" fill="oklch(0.9 0.035 260 / 0.55)" />
-        <rect x="12" y="7" width="42" height="12" rx="2" fill="oklch(0.92 0.035 120 / 0.55)" />
-        <rect x="12" y="36" width="24" height="10" rx="2" fill="oklch(0.92 0.035 210 / 0.55)" />
+        <rect x="12" y="47" width="56" height="24" rx="2" fill="rgba(247, 245, 240, 0.08)" stroke="rgba(247, 245, 240, 0.2)" strokeWidth="0.5" />
+        <rect x="58" y="72" width="32" height="18" rx="2" fill="rgba(247, 245, 240, 0.08)" stroke="rgba(247, 245, 240, 0.2)" strokeWidth="0.5" />
+        <rect x="60" y="47" width="30" height="17" rx="2" fill="rgba(247, 245, 240, 0.08)" stroke="rgba(247, 245, 240, 0.2)" strokeWidth="0.5" />
+        <rect x="58" y="25" width="32" height="21" rx="2" fill="rgba(247, 245, 240, 0.08)" stroke="rgba(247, 245, 240, 0.2)" strokeWidth="0.5" />
       </svg>
       {route.slice(1, -1).map((point) => (
         <Pin key={point.label} x={point.x} y={point.y} label={point.label} tone="accent" />
@@ -283,15 +293,16 @@ function Pin({
       style={{ left: `${x}%`, top: `${y}%` }}
     >
       <div
-        className={`mx-auto grid h-7 w-7 place-items-center rounded-full border-2 border-card ${
-          tone === "primary" ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
+        className={`mx-auto grid h-6 w-6 place-items-center rounded-full border border-white ${
+          tone === "primary" ? "bg-[#E8944A] text-white" : "bg-[#12203A] text-white"
         }`}
       >
-        <MapPin className="h-3.5 w-3.5" />
+        <MapPin className="h-3 w-3" />
       </div>
-      <div className="mt-1 max-w-24 truncate rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-medium shadow-card">
+      <div className="mt-1 max-w-24 truncate rounded bg-[#12203A]/90 px-1.5 py-0.5 font-mono text-[9px] font-medium text-[#F7F5F0] shadow-sm">
         {label}
       </div>
     </div>
   );
 }
+
