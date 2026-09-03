@@ -76,11 +76,18 @@ function Home() {
   const locations = useLocations();
   const entryId = useEntryPoint();
   const entry = locations.find((l) => l.id === entryId);
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const qrTarget = origin ? `${origin}/qr/main-gate` : "/qr/main-gate";
+  const [originUrl, setOriginUrl] = useState("");
   const [query, setQuery] = useState("");
   const [purpose, setPurpose] = useState<string>("All");
   const [cat, setCat] = useState<string>("All");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOriginUrl(window.location.origin);
+    }
+  }, []);
+
+  const qrTarget = originUrl ? `${originUrl}/qr/main-gate` : "/qr/main-gate";
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -170,12 +177,21 @@ function Home() {
                     <QrCode className="h-4 w-4" />
                   </div>
                 </div>
-                <div className="mt-3 grid place-items-center rounded-lg border border-[#12203A]/10 bg-[#F7F5F0] p-3">
+                <Link
+                  to="/qr/$id"
+                  params={{ id: "main-gate" }}
+                  title="Click to simulate QR scan"
+                  className="mt-3 grid place-items-center rounded-lg border border-[#12203A]/10 bg-[#F7F5F0] p-3 transition-transform hover:scale-105"
+                >
                   <QrCodeCanvas value={qrTarget} size={190} label="Main Gate navigation QR" />
-                </div>
-                <div className="mt-2 font-mono text-center text-[10px] text-[#5B6472]">
-                  /qr/main-gate
-                </div>
+                </Link>
+                <Link
+                  to="/qr/$id"
+                  params={{ id: "main-gate" }}
+                  className="mt-2 block font-mono text-center text-[10px] text-[#5B6472] hover:text-[#E8944A] hover:underline"
+                >
+                  /qr/main-gate (Click to Test)
+                </Link>
               </div>
               <HomeMap locations={locations} />
             </div>
