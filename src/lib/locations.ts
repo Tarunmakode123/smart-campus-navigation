@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export const CATEGORIES = [
+export const HOME_CATEGORIES = [
   "Entry",
   "Living",
   "Bedroom",
@@ -10,7 +10,23 @@ export const CATEGORIES = [
   "Other",
 ] as const;
 
-export type Category = (typeof CATEGORIES)[number];
+export const CAMPUS_CATEGORIES = [
+  "Department",
+  "Lab",
+  "Faculty Cabin",
+  "Library",
+  "Canteen",
+  "Admin Block",
+  "Auditorium",
+  "Washroom",
+  "Parking",
+  "Hostel",
+  "Entry",
+] as const;
+
+export const CATEGORIES: readonly string[] = HOME_CATEGORIES;
+
+export type Category = string;
 
 export interface Location {
   id: string;
@@ -24,6 +40,7 @@ export interface Location {
   steps?: string[];
   mapX?: number;
   mapY?: number;
+  building?: string;
   floor?: string;
   contact?: string;
   hours?: string;
@@ -47,6 +64,7 @@ const SEED: Location[] = [
     steps: ["Scan the QR at Main Gate", "Move forward into the Hall", "Choose a destination room"],
     mapX: 34,
     mapY: 93,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -64,6 +82,7 @@ const SEED: Location[] = [
     steps: ["Start at Main Gate", "Walk straight 7 m", "Enter the Hall"],
     mapX: 38,
     mapY: 61,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -81,6 +100,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Turn right from Hall", "Enter 1st Bedroom"],
     mapX: 73,
     mapY: 86,
+    building: "Home",
     floor: "Ground",
     hours: "Private room",
     image:
@@ -98,6 +118,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Turn right into Dining Room"],
     mapX: 77,
     mapY: 58,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -116,6 +137,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Enter Dining Room", "Continue to Kitchen"],
     mapX: 72,
     mapY: 34,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -133,6 +155,7 @@ const SEED: Location[] = [
     steps: ["Move to Hall", "Go through Dining Room to Kitchen", "Enter Porch from Kitchen"],
     mapX: 72,
     mapY: 15,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -150,6 +173,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Turn left toward Bathroom", "Enter Bathroom"],
     mapX: 27,
     mapY: 38,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -167,6 +191,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Continue 3 m to 2nd Bedroom"],
     mapX: 36,
     mapY: 27,
+    building: "Home",
     floor: "Ground",
     hours: "Private room",
     image:
@@ -184,6 +209,7 @@ const SEED: Location[] = [
     steps: ["Move from Main Gate to Hall", "Go to 2nd Bedroom", "Continue to Bhagwan Room"],
     mapX: 31,
     mapY: 15,
+    building: "Home",
     floor: "Ground",
     hours: "Open 24/7",
     image:
@@ -199,13 +225,23 @@ function mergeSeedLocations(list: Location[]) {
   let changed = false;
   const merged = list.map((loc) => {
     const seed = byId.get(loc.id);
-    if (!seed) return loc;
+    if (!seed) {
+      if (!loc.building) {
+        changed = true;
+        return { ...loc, building: "Home" };
+      }
+      return loc;
+    }
     byId.delete(loc.id);
-    const next = { ...seed, ...loc };
+    const next = { building: "Home", ...seed, ...loc };
+    if (!loc.building) {
+      next.building = seed.building ?? "Home";
+    }
     if (
       !loc.purpose ||
       !loc.person ||
       !loc.department ||
+      !loc.building ||
       loc.mapX == null ||
       loc.mapY == null
     ) {

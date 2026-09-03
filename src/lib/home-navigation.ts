@@ -2,10 +2,13 @@ import type { Location } from "@/lib/locations";
 
 export const DEFAULT_ENTRY_ID = "main-gate";
 
+export type EdgeType = "walk" | "stairs" | "lift";
+
 export type RouteEdge = {
   from: string;
   to: string;
   metres: number;
+  edgeType?: EdgeType;
 };
 
 export type RouteResult = {
@@ -33,8 +36,9 @@ export function calculateHomeRoute(startId: string, destinationId: string): Rout
 
   const adjacency = new Map<string, RouteEdge[]>();
   for (const edge of HOME_ROUTE_EDGES) {
-    const forward = edge;
-    const reverse = { from: edge.to, to: edge.from, metres: edge.metres };
+    const edgeType = edge.edgeType ?? "walk";
+    const forward = { ...edge, edgeType };
+    const reverse = { from: edge.to, to: edge.from, metres: edge.metres, edgeType };
     adjacency.set(edge.from, [...(adjacency.get(edge.from) ?? []), forward]);
     adjacency.set(edge.to, [...(adjacency.get(edge.to) ?? []), reverse]);
   }
@@ -75,12 +79,13 @@ export function calculateHomeRoute(startId: string, destinationId: string): Rout
 
   const edges = nodes.slice(0, -1).map((from, index) => {
     const to = nodes[index + 1];
-    return (
-      HOME_ROUTE_EDGES.find(
-        (edge) =>
-          (edge.from === from && edge.to === to) || (edge.from === to && edge.to === from),
-      ) ?? { from, to, metres: 0 }
+    const found = HOME_ROUTE_EDGES.find(
+      (edge) =>
+        (edge.from === from && edge.to === to) || (edge.from === to && edge.to === from),
     );
+    return found
+      ? { from, to, metres: found.metres, edgeType: found.edgeType ?? "walk" }
+      : { from, to, metres: 0, edgeType: "walk" as const };
   });
 
   return {
@@ -101,6 +106,15 @@ export function buildRouteSteps(route: RouteResult, locations: Location[]) {
     const from = byId.get(route.nodes[index]) ?? route.nodes[index];
     const to = byId.get(route.nodes[index + 1]) ?? route.nodes[index + 1];
     const distance = formatMetres(edge.metres);
+    const type = edge.edgeType ?? "walk";
+
+    if (type === "stairs") {
+      return `Take the stairs from ${from} to ${to} (${distance}).`;
+    }
+    if (type === "lift") {
+      return `Take the lift from ${from} to ${to} (${distance}).`;
+    }
+
     return index === 0
       ? `Start from ${from}, then move ${distance} to ${to}.`
       : `Continue ${distance} from ${from} to ${to}.`;
