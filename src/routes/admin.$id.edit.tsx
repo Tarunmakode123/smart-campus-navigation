@@ -19,7 +19,24 @@ function EditLocation() {
   const { id } = Route.useParams();
   const all = useLocations();
   const loc = all.find((l) => l.id === id);
-  if (!loc) throw notFound();
+
+  if (!loc) {
+    return (
+      <div className="min-h-screen bg-[#F7F5F0] pb-24">
+        <AppHeader showAdmin={false} />
+        <div className="mx-auto max-w-2xl px-4 pt-12 text-center">
+          <h1 className="font-display text-xl font-bold text-[#12203A]">Location Not Found</h1>
+          <p className="mt-2 font-sans text-xs text-[#5B6472]">The location you are trying to edit does not exist.</p>
+          <Link
+            to="/admin"
+            className="mt-4 inline-block rounded-md bg-[#12203A] px-4 py-2 font-display text-xs font-bold uppercase text-white shadow-sm hover:bg-[#1E2D4A]"
+          >
+            Back to Directory Admin
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] pb-24">

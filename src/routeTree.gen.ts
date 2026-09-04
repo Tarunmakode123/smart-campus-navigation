@@ -9,8 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as QrIdRouteImport } from './routes/qr.$id'
 import { Route as NavigateIdRouteImport } from './routes/navigate.$id'
 import { Route as LocationIdRouteImport } from './routes/location.$id'
@@ -18,14 +18,14 @@ import { Route as AdminQrRouteImport } from './routes/admin.qr'
 import { Route as AdminNewRouteImport } from './routes/admin.new'
 import { Route as AdminIdEditRouteImport } from './routes/admin.$id.edit'
 
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QrIdRoute = QrIdRouteImport.update({
@@ -44,107 +44,110 @@ const LocationIdRoute = LocationIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminQrRoute = AdminQrRouteImport.update({
-  id: '/qr',
-  path: '/qr',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/qr',
+  path: '/admin/qr',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminNewRoute = AdminNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/new',
+  path: '/admin/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIdEditRoute = AdminIdEditRouteImport.update({
-  id: '/$id/edit',
-  path: '/$id/edit',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/$id/edit',
+  path: '/admin/$id/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admin/new': typeof AdminNewRoute
   '/admin/qr': typeof AdminQrRoute
   '/location/$id': typeof LocationIdRoute
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admin/new': typeof AdminNewRoute
   '/admin/qr': typeof AdminQrRoute
   '/location/$id': typeof LocationIdRoute
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
+  '/admin': typeof AdminIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admin/new': typeof AdminNewRoute
   '/admin/qr': typeof AdminQrRoute
   '/location/$id': typeof LocationIdRoute
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/admin/new'
     | '/admin/qr'
     | '/location/$id'
     | '/navigate/$id'
     | '/qr/$id'
+    | '/admin/'
     | '/admin/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/admin/new'
     | '/admin/qr'
     | '/location/$id'
     | '/navigate/$id'
     | '/qr/$id'
+    | '/admin'
     | '/admin/$id/edit'
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/admin/new'
     | '/admin/qr'
     | '/location/$id'
     | '/navigate/$id'
     | '/qr/$id'
+    | '/admin/'
     | '/admin/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
+  AdminNewRoute: typeof AdminNewRoute
+  AdminQrRoute: typeof AdminQrRoute
   LocationIdRoute: typeof LocationIdRoute
   NavigateIdRoute: typeof NavigateIdRoute
   QrIdRoute: typeof QrIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminIdEditRoute: typeof AdminIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/qr/$id': {
@@ -170,48 +173,37 @@ declare module '@tanstack/react-router' {
     }
     '/admin/qr': {
       id: '/admin/qr'
-      path: '/qr'
+      path: '/admin/qr'
       fullPath: '/admin/qr'
       preLoaderRoute: typeof AdminQrRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/new': {
       id: '/admin/new'
-      path: '/new'
+      path: '/admin/new'
       fullPath: '/admin/new'
       preLoaderRoute: typeof AdminNewRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/$id/edit': {
       id: '/admin/$id/edit'
-      path: '/$id/edit'
+      path: '/admin/$id/edit'
       fullPath: '/admin/$id/edit'
       preLoaderRoute: typeof AdminIdEditRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminNewRoute: typeof AdminNewRoute
-  AdminQrRoute: typeof AdminQrRoute
-  AdminIdEditRoute: typeof AdminIdEditRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminNewRoute: AdminNewRoute,
-  AdminQrRoute: AdminQrRoute,
-  AdminIdEditRoute: AdminIdEditRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
+  AdminNewRoute: AdminNewRoute,
+  AdminQrRoute: AdminQrRoute,
   LocationIdRoute: LocationIdRoute,
   NavigateIdRoute: NavigateIdRoute,
   QrIdRoute: QrIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminIdEditRoute: AdminIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

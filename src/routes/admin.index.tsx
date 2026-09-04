@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { deleteLocation, resetLocations, useLocations } from "@/lib/locations";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin — Smart Navigator" }] }),
   component: AdminPage,
 });
