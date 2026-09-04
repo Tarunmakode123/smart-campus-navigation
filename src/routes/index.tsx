@@ -19,6 +19,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { QrCodeCanvas } from "@/components/QrCodeCanvas";
 import { CATEGORIES, type Location, useLocations } from "@/lib/locations";
 import { clearEntryPoint, useEntryPoint } from "@/lib/entry-point";
+import { getAbsoluteQrUrl } from "@/lib/url-utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -88,7 +89,7 @@ function Home() {
     }
   }, []);
 
-  const qrTarget = originUrl ? `${originUrl}/qr/main-gate` : "/qr/main-gate";
+  const qrTarget = getAbsoluteQrUrl("/qr/main-gate", originUrl);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();

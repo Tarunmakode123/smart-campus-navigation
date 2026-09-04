@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
 export function QrCodeCanvas({
@@ -10,41 +10,55 @@ export function QrCodeCanvas({
   size?: number;
   label?: string;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [dataUrl, setDataUrl] = useState<string>("");
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!canvasRef.current || !value) return;
+    if (!value) return;
+    setFailed(false);
 
-    QRCode.toCanvas(canvasRef.current, value, {
+    QRCode.toDataURL(value, {
       width: size,
       margin: 2,
       color: {
-        dark: "#111827",
-        light: "#ffffff",
+        dark: "#12203A",
+        light: "#FFFFFF",
       },
       errorCorrectionLevel: "M",
-    }).catch(() => setFailed(true));
+    })
+      .then((url) => setDataUrl(url))
+      .catch(() => setFailed(true));
   }, [value, size]);
 
   if (failed) {
     return (
       <div
-        className="grid place-items-center rounded-xl border border-dashed border-border bg-white p-4 text-center text-xs text-muted-foreground"
+        className="grid place-items-center rounded-lg border border-dashed border-[#12203A]/20 bg-white p-4 text-center text-xs text-[#5B6472]"
         style={{ width: size, height: size }}
       >
-        QR could not render
+        QR generation failed
+      </div>
+    );
+  }
+
+  if (!dataUrl) {
+    return (
+      <div
+        className="grid place-items-center rounded-lg border border-dashed border-[#12203A]/20 bg-white p-4 text-center text-xs text-[#5B6472]"
+        style={{ width: size, height: size }}
+      >
+        Generating QR...
       </div>
     );
   }
 
   return (
-    <canvas
-      ref={canvasRef}
+    <img
+      src={dataUrl}
       width={size}
       height={size}
-      aria-label={label ?? "QR code"}
-      className="block rounded-lg bg-white"
+      alt={label ?? "QR code"}
+      className="block rounded-lg bg-white shadow-sm"
     />
   );
 }

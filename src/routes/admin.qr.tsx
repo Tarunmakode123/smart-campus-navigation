@@ -4,6 +4,7 @@ import { ArrowLeft, Globe, Info, Printer, QrCode } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { QrCodeCanvas } from "@/components/QrCodeCanvas";
 import { useLocations } from "@/lib/locations";
+import { getAbsoluteQrUrl } from "@/lib/url-utils";
 
 export const Route = createFileRoute("/admin/qr")({
   head: () => ({ meta: [{ title: "QR Codes — Smart Navigator" }] }),
@@ -121,8 +122,7 @@ function QrCodesPage() {
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {displayLocations.map((loc) => {
-            const cleanHost = hostUrl.replace(/\/$/, "");
-            const fullTargetUrl = cleanHost ? `${cleanHost}/qr/${loc.id}` : `/qr/${loc.id}`;
+            const fullTargetUrl = getAbsoluteQrUrl(`/qr/${loc.id}`, hostUrl);
             return (
               <div
                 key={loc.id}
