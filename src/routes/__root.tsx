@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import "../styles.css";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "sonner";
 
@@ -48,7 +49,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-[#5B6472]">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -57,13 +58,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-[#F97316] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#ea580c]"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-md border border-[#111827]/15 bg-white px-4 py-2 text-sm font-semibold text-[#111827] transition-colors hover:bg-[#F8FAFC]"
           >
             Go home
           </a>
@@ -78,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Smart Navigator" },
-      { name: "description", content: "Find your way inside any campus, hospital or office — instantly." },
-      { name: "author", content: "Smart Navigator" },
-      { property: "og:title", content: "Smart Navigator" },
-      { property: "og:description", content: "Find your way inside any campus, hospital or office — instantly." },
+      { title: "WayFindr — Find Your Way. Instantly." },
+      { name: "description", content: "Find your way inside any campus, hospital, office or facility — instantly." },
+      { name: "author", content: "WayFindr" },
+      { property: "og:title", content: "WayFindr" },
+      { property: "og:description", content: "Real-world QR-based indoor navigation system." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -131,7 +132,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
