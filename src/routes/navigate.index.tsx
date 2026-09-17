@@ -127,7 +127,10 @@ function WayFindrNavigateApp() {
 
         {/* Device Location Permission Request Banner */}
         {appState === "VISITOR_FORM" && (
-          <LocationPermissionBanner onPermissionChange={() => {}} />
+          <LocationPermissionBanner
+            startingLocationName={qrContext.locationName}
+            onPermissionChange={() => {}}
+          />
         )}
 
         {/* Stage 1: Visitor Entry & Destination Form */}
