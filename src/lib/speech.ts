@@ -13,6 +13,13 @@ export function speakDirection(text: string) {
   }
 }
 
+export function speakTurnInstruction(step: { text: string } | string) {
+  const msg = typeof step === "string" ? step : step.text;
+  if (msg) {
+    speakDirection(msg);
+  }
+}
+
 export function stopSpeech() {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
   try {
