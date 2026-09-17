@@ -159,37 +159,45 @@ export function AutocompleteSearch({
       )}
 
       {/* Autocomplete Suggestions Dropdown */}
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && query.trim() !== "" && (
         <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-64 overflow-y-auto rounded-xl border-2 border-[#111827]/15 bg-white p-1.5 shadow-2xl space-y-0.5">
-          <div className="px-2 py-1 font-mono text-[9px] font-bold uppercase text-[#6B7280] border-b mb-1">
-            {suggestions.length} MATCHING {type.toUpperCase()}S
-          </div>
+          {suggestions.length > 0 ? (
+            <>
+              <div className="px-2 py-1 font-mono text-[9px] font-bold uppercase text-[#6B7280] border-b mb-1">
+                {suggestions.length} MATCHING {type.toUpperCase()}S
+              </div>
 
-          {suggestions.map((item, idx) => {
-            const isHighlighted = idx === highlightedIndex;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleSelectItem(item)}
-                onMouseEnter={() => setHighlightedIndex(idx)}
-                className={`flex w-full items-center justify-between rounded-lg p-2.5 text-left transition-colors ${
-                  isHighlighted ? "bg-[#111827] text-white" : "hover:bg-[#F8FAFC] text-[#111827]"
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className={`font-display text-xs font-extrabold ${isHighlighted ? "text-white" : "text-[#111827]"}`}>
-                    {item.title}
-                  </div>
-                  <div className={`font-sans text-[11px] truncate ${isHighlighted ? "text-[#9CA3AF]" : "text-[#6B7280]"}`}>
-                    {item.subtitle}
-                  </div>
-                </div>
-                <span className={`font-mono text-[10px] font-bold uppercase ${isHighlighted ? "text-[#F97316]" : "text-[#F97316]"}`}>
-                  Select →
-                </span>
-              </button>
-            );
-          })}
+              {suggestions.map((item, idx) => {
+                const isHighlighted = idx === highlightedIndex;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSelectItem(item)}
+                    onMouseEnter={() => setHighlightedIndex(idx)}
+                    className={`flex w-full items-center justify-between rounded-lg p-2.5 text-left transition-colors ${
+                      isHighlighted ? "bg-[#111827] text-white" : "hover:bg-[#F8FAFC] text-[#111827]"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-display text-xs font-extrabold ${isHighlighted ? "text-white" : "text-[#111827]"}`}>
+                        {item.title}
+                      </div>
+                      <div className={`font-sans text-[11px] truncate ${isHighlighted ? "text-[#9CA3AF]" : "text-[#6B7280]"}`}>
+                        {item.subtitle}
+                      </div>
+                    </div>
+                    <span className={`font-mono text-[10px] font-bold uppercase ${isHighlighted ? "text-[#F97316]" : "text-[#F97316]"}`}>
+                      Select →
+                    </span>
+                  </button>
+                );
+              })}
+            </>
+          ) : (
+            <div className="p-3 text-center font-sans text-xs font-semibold text-[#6B7280]">
+              No matching {type} found.
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Footprints, MapPin, Navigation, Plus, Minus } from "lucide-react";
+import { MapPin, Navigation, Plus, Minus } from "lucide-react";
+import { DEMO_EDGES, DEMO_NODES } from "@/lib/wayfindr-data";
 import type { Destination, FloorLevel, IndoorNode, RouteResult } from "@/lib/wayfindr-types";
 
 export function IndoorMap({
-  nodes,
+  nodes = DEMO_NODES,
   currentPosNodeId,
   selectedDestination,
   routeResult,
@@ -11,7 +12,7 @@ export function IndoorMap({
   activeFloor,
   onSelectFloor,
 }: {
-  nodes: IndoorNode[];
+  nodes?: IndoorNode[];
   currentPosNodeId: string;
   selectedDestination?: Destination | null;
   routeResult?: RouteResult | null;
@@ -21,18 +22,17 @@ export function IndoorMap({
 }) {
   const [zoom, setZoom] = useState(1);
 
-  // Filter nodes on the selected floor
-  const floorNodes = nodes.filter((n) => n.floorId === activeFloor);
+  const displayNodes = nodes && nodes.length > 0 ? nodes : DEMO_NODES;
 
-  // Compute current animated position dot
+  // Active step / current position node
   const activeRouteNodeId =
     routeResult && routeResult.nodes.length > 0
       ? routeResult.nodes[Math.min(currentStepIndex, routeResult.nodes.length - 1)]
       : currentPosNodeId;
 
-  const currentNode = nodes.find((n) => n.id === activeRouteNodeId);
+  const currentNode = displayNodes.find((n) => n.id === activeRouteNodeId);
   const destNode = selectedDestination
-    ? nodes.find((n) => n.id === selectedDestination.nodeId)
+    ? displayNodes.find((n) => n.id === selectedDestination.nodeId)
     : null;
 
   // Build SVG Route Line Path if route exists
@@ -40,7 +40,7 @@ export function IndoorMap({
     routeResult && routeResult.nodes.length > 1
       ? routeResult.nodes
           .map((nid) => {
-            const n = nodes.find((loc) => loc.id === nid);
+            const n = displayNodes.find((loc) => loc.id === nid);
             return n ? `${n.x} ${n.y}` : null;
           })
           .filter(Boolean)
@@ -49,44 +49,60 @@ export function IndoorMap({
       : "";
 
   return (
-    <div className="relative min-h-[360px] w-full overflow-hidden rounded-2xl border-2 border-[#111827]/12 bg-[#F8FAFC] shadow-sm">
-      {/* Map Surface Background Grid */}
+    <div className="relative min-h-[420px] w-full overflow-hidden rounded-2xl border-2 border-[#111827]/12 bg-[#F8FAFC] shadow-sm">
+      {/* Surface Radial Grid */}
       <div className="absolute inset-0 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] [background-size:24px_24px]" />
 
-      {/* Vector SVG Indoor Map Canvas */}
+      {/* Vector SVG Map Canvas */}
       <div
         className="absolute inset-0 h-full w-full transition-transform duration-300"
         style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}
       >
         <svg viewBox="0 0 100 100" className="h-full w-full">
-          {/* Architectural Wall Outlines & Rooms */}
-          <rect x="8" y="10" width="84" height="80" rx="3" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="0.8" />
+          {/* Main House Perimeter Wall Outline */}
+          <rect x="5" y="4" width="90" height="92" rx="3" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="0.8" />
 
-          {/* Corridors */}
-          <path d="M15 65 H85 M45 20 V80 M75 20 V80" fill="none" stroke="#E2E8F0" strokeWidth="8" strokeLinecap="round" />
+          {/* Floor Plan Room Boxes */}
+          {/* Top Row: Bhagwan Room (Left) & Porch (Right) */}
+          <rect x="10" y="6" width="30" height="16" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.6" />
+          <rect x="60" y="6" width="30" height="16" rx="1.5" fill="#FFFBEB" stroke="#FDE68A" strokeWidth="0.6" />
 
-          {/* Rooms Outlines */}
-          <rect x="12" y="15" width="28" height="25" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="12" y="45" width="28" height="18" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="42" y="15" width="28" height="25" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="42" y="72" width="28" height="15" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="68" y="72" width="22" height="15" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="68" y="52" width="22" height="18" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
-          <rect x="68" y="28" width="22" height="20" rx="1" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.5" />
+          {/* Upper Middle Row: 2nd Bedroom (Left) & Kitchen (Right) */}
+          <rect x="10" y="25" width="30" height="16" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.6" />
+          <rect x="60" y="25" width="30" height="16" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.6" />
 
-          {/* Doors & Corridor Connector Nodes */}
-          <circle cx="20" cy="65" r="1" fill="#64748B" />
-          <circle cx="45" cy="65" r="1.2" fill="#64748B" />
-          <circle cx="60" cy="65" r="1.2" fill="#64748B" />
-          <circle cx="75" cy="65" r="1.2" fill="#64748B" />
+          {/* Middle Row: Bathroom (Left) & Dining Room (Right) */}
+          <rect x="10" y="44" width="30" height="16" rx="1.5" fill="#F0FDF4" stroke="#BBF7D0" strokeWidth="0.6" />
+          <rect x="60" y="44" width="30" height="18" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.6" />
 
-          {/* Staircase & Elevator Visual Indicators */}
-          <g transform="translate(58, 62)">
-            <rect x="0" y="0" width="6" height="6" fill="#F1F5F9" stroke="#64748B" strokeWidth="0.4" rx="1" />
-            <path d="M1 5 H5 M2 4 H5 M3 3 H5 M4 2 H5" stroke="#64748B" strokeWidth="0.4" fill="none" />
-          </g>
+          {/* Lower Center: Central Hall */}
+          <rect x="30" y="63" width="30" height="16" rx="1.5" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="0.8" />
 
-          {/* Active Navigation Path (Orange #F97316) */}
+          {/* Bottom Row: 1st Bedroom (Left) & Main Gate Entrance (Right/Bottom) */}
+          <rect x="10" y="80" width="22" height="14" rx="1.5" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="0.6" />
+          <rect x="34" y="82" width="22" height="12" rx="2" fill="#F97316" fillOpacity="0.1" stroke="#F97316" strokeWidth="0.8" strokeDasharray="2 1" />
+
+          {/* Graph Connection Edges (Dashed Lines representing physical hallways/doors) */}
+          {DEMO_EDGES.map((edge, idx) => {
+            const fromN = displayNodes.find((n) => n.id === edge.from);
+            const toN = displayNodes.find((n) => n.id === edge.to);
+            if (!fromN || !toN) return null;
+            return (
+              <g key={idx}>
+                <line
+                  x1={fromN.x}
+                  y1={fromN.y}
+                  x2={toN.x}
+                  y2={toN.y}
+                  stroke="#CBD5E1"
+                  strokeWidth="1.2"
+                  strokeDasharray="2 1.5"
+                />
+              </g>
+            );
+          })}
+
+          {/* Active Navigation Path (Solid Orange #F97316) */}
           {routePathD && (
             <path
               d={routePathD}
@@ -95,44 +111,45 @@ export function IndoorMap({
               strokeWidth="2.8"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeDasharray="4 2"
               className="animate-pulse"
             />
           )}
         </svg>
 
-        {/* Room Labels on Map */}
-        {floorNodes.map((n) => (
+        {/* Room Labels */}
+        {displayNodes.map((n) => (
           <div
             key={n.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[8px] font-bold text-[#64748B] pointer-events-none select-none"
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none"
             style={{ left: `${n.x}%`, top: `${n.y}%` }}
           >
-            {n.type === "room" || n.type === "entrance" ? n.name : ""}
+            <span className="rounded bg-white/90 px-1 py-0.5 font-mono text-[9px] font-extrabold text-[#111827] shadow-2xs border border-[#111827]/10">
+              {n.name}
+            </span>
           </div>
         ))}
 
-        {/* Selected Destination Pin Marker */}
-        {destNode && destNode.floorId === activeFloor && (
+        {/* Selected Destination Marker */}
+        {destNode && (
           <div
             className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 z-20"
             style={{ left: `${destNode.x}%`, top: `${destNode.y}%` }}
           >
             <div className="flex flex-col items-center">
-              <div className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#111827] text-[#F97316] shadow-md">
+              <div className="grid h-7 w-7 place-items-center rounded-full border-2 border-white bg-[#111827] text-[#F97316] shadow-lg">
                 <MapPin className="h-4 w-4" />
               </div>
               <div className="mt-0.5 rounded bg-[#111827] px-1.5 py-0.5 font-mono text-[9px] font-bold text-white shadow-xs">
-                {selectedDestination?.name}
+                🎯 {selectedDestination?.name}
               </div>
             </div>
           </div>
         )}
 
-        {/* Pulsing Location Position Marker (Current User Dot) */}
-        {currentNode && currentNode.floorId === activeFloor && (
+        {/* User Location Position Marker */}
+        {currentNode && (
           <div
-            className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-in-out z-30"
+            className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out z-30"
             style={{ left: `${currentNode.x}%`, top: `${currentNode.y}%` }}
           >
             <div className="relative flex items-center justify-center">
@@ -146,10 +163,10 @@ export function IndoorMap({
       </div>
 
       {/* Map Header Overlay */}
-      <div className="absolute left-3 top-3 z-10 rounded-md border border-[#111827]/10 bg-white/90 px-3 py-1.5 backdrop-blur shadow-xs">
+      <div className="absolute left-3 top-3 z-10 rounded-md border border-[#111827]/10 bg-white/95 px-3 py-1.5 backdrop-blur shadow-xs">
         <div className="flex items-center gap-1.5 font-display text-[10px] font-extrabold uppercase text-[#111827]">
           <Navigation className="h-3.5 w-3.5 text-[#F97316]" />
-          <span>INDOOR VECTOR MAP</span>
+          <span>HOME FLOOR PLAN</span>
         </div>
       </div>
 
@@ -169,31 +186,6 @@ export function IndoorMap({
         >
           <Minus className="h-4 w-4" />
         </button>
-      </div>
-
-      {/* Multi-Floor Selector Component */}
-      <div className="absolute right-3 top-3 bottom-3 z-10 flex flex-col justify-center">
-        <div className="flex flex-col gap-1 rounded-lg border border-[#111827]/15 bg-white p-1.5 shadow-md">
-          <div className="px-1 text-center font-mono text-[9px] font-bold uppercase text-[#6B7280]">
-            FLOOR
-          </div>
-          {(["2", "1", "G", "B1"] as FloorLevel[]).map((fl) => {
-            const isActive = activeFloor === fl;
-            return (
-              <button
-                key={fl}
-                onClick={() => onSelectFloor(fl)}
-                className={`grid h-8 w-8 place-items-center rounded-md font-display text-xs font-extrabold transition-all ${
-                  isActive
-                    ? "bg-[#F97316] text-white shadow-xs"
-                    : "bg-[#F8FAFC] text-[#111827] hover:bg-[#111827] hover:text-white"
-                }`}
-              >
-                {fl}
-              </button>
-            );
-          })}
-        </div>
       </div>
     </div>
   );

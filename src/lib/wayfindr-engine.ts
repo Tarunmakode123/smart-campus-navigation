@@ -115,14 +115,14 @@ export function calculateWayfindrRoute(
     const found = DEMO_EDGES.find(
       (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from)
     );
-    return (
-      found ?? {
-        from,
-        to,
-        distance: 15,
-        edgeType: "walk",
-      }
-    );
+    return found
+      ? { ...found, from, to }
+      : {
+          from,
+          to,
+          distance: 15,
+          edgeType: "walk",
+        };
   });
 
   const totalMetres = edges.reduce((sum, e) => sum + e.distance, 0);
@@ -150,26 +150,10 @@ export function calculateWayfindrRoute(
       action = "elevator";
       text = `Take the elevator from ${fromName} to ${toName} (${edge.distance} m).`;
     } else {
-      if (fromNode && toNode) {
-        const dx = toNode.x - fromNode.x;
-        if (dx > 20) {
-          action = "turn-right";
-          text = index === 0
-            ? `Start at ${fromName}, turn right and walk ${edge.distance} m to ${toName}.`
-            : `Turn right and walk ${edge.distance} m to ${toName}.`;
-        } else if (dx < -15) {
-          action = "turn-left";
-          text = index === 0
-            ? `Start at ${fromName}, turn left and walk ${edge.distance} m to ${toName}.`
-            : `Turn left and walk ${edge.distance} m to ${toName}.`;
-        } else {
-          action = "straight";
-          text = index === 0
-            ? `Start at ${fromName}, walk straight ${edge.distance} m to ${toName}.`
-            : `Walk straight ${edge.distance} m to ${toName}.`;
-        }
+      if (index === 0) {
+        text = `Start at ${fromName}, walk toward ${toName} (${edge.distance} m).`;
       } else {
-        text = `Walk ${edge.distance} m to ${toName}.`;
+        text = `Continue to ${toName} (${edge.distance} m).`;
       }
     }
 
