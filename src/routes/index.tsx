@@ -28,6 +28,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { LiveQRCodeDemo } from "@/components/wayfindr/LiveQRCodeDemo";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -71,6 +73,9 @@ function WayFindrHomepage() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#4B5563]">
             <a href="#how-it-works" className="hover:text-[#F97316] transition-colors">
               How It Works
+            </a>
+            <a href="#qr-demo" className="hover:text-[#F97316] transition-colors">
+              QR Demo
             </a>
             <a href="#features" className="hover:text-[#F97316] transition-colors">
               Features
@@ -121,6 +126,13 @@ function WayFindrHomepage() {
               className="block font-semibold text-[#111827] py-1"
             >
               How It Works
+            </a>
+            <a
+              href="#qr-demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block font-semibold text-[#111827] py-1"
+            >
+              QR Demo
             </a>
             <a
               href="#features"
@@ -519,6 +531,14 @@ function WayFindrHomepage() {
       </section>
 
       {/* ================================================== */}
+      {/* NEW SECTION: REAL SCANNABLE QR DEMO */}
+      {/* Placed immediately AFTER "How WayFindr Works" & BEFORE "Product Experience" */}
+      {/* ================================================== */}
+      <div id="qr-demo">
+        <LiveQRCodeDemo />
+      </div>
+
+      {/* ================================================== */}
       {/* SECTION: PRODUCT EXPERIENCE SHOWCASE */}
       {/* ================================================== */}
       <section id="technology" className="py-16 sm:py-24 bg-[#F8FAFC] border-t border-[#111827]/10">
@@ -900,6 +920,9 @@ function WayFindrHomepage() {
               <ul className="space-y-1.5 text-xs text-[#6B7280]">
                 <li>
                   <a href="#how-it-works" className="hover:text-[#F97316]">How It Works</a>
+                </li>
+                <li>
+                  <a href="#qr-demo" className="hover:text-[#F97316]">QR Demo</a>
                 </li>
                 <li>
                   <a href="#features" className="hover:text-[#F97316]">Features</a>
