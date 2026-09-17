@@ -89,8 +89,18 @@ export function LiveNavigationUI({
           <span className="font-display text-xs font-bold text-white uppercase tracking-wider">
             LIVE NAVIGATION
           </span>
-          <span className="font-mono text-[10px] text-[#9CA3AF] hidden sm:inline">
-            • Signal: {currentPosition.source} ({currentPosition.accuracyState})
+          <span className="font-mono text-[10px] text-[#9CA3AF] hidden sm:inline-flex items-center gap-1.5">
+            <span>• Provider:</span>
+            <span className="rounded bg-[#F97316]/20 px-1.5 py-0.5 font-extrabold text-[#F97316]">
+              {currentPosition.source}
+            </span>
+            <span className={`rounded px-1.5 py-0.5 font-bold ${
+              currentPosition.accuracyState === "high" ? "bg-[#10B981]/20 text-[#10B981]" :
+              currentPosition.accuracyState === "medium" ? "bg-amber-500/20 text-amber-400" :
+              "bg-red-500/20 text-red-400"
+            }`}>
+              {currentPosition.accuracyState.toUpperCase()} CONFIDENCE {currentPosition.accuracyMetres ? `(±${Math.round(currentPosition.accuracyMetres)}m)` : ""}
+            </span>
           </span>
         </div>
 

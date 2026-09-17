@@ -1,0 +1,148 @@
+// WayFindr Production Database Schema (Prisma ORM)
+// Target Database: PostgreSQL / CockroachDB / MySQL
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum FacilityType {
+  CAMPUS
+  HOSPITAL
+  OFFICE_BUILDING
+  HOTEL
+  SHOPPING_CENTER
+  AIRPORT
+  RESIDENTIAL
+}
+
+enum AnchorType {
+  QR_CHECKPOINT
+  BLE_BEACON
+  WIFI_RTT_AP
+  UWB_ANCHOR
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  facility    FacilityType
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  buildings   Building[]
+  sessions    VisitorSession[]
+
+  @@map("organizations")
+}
+
+model Building {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  code           String
+  latitude       Float?
+  longitude      Float?
+  floors         Floor[]
+  nodes          NavigationNode[]
+
+  @@unique([organizationId, code])
+  @@map("buildings")
+}
+
+model Floor {
+  id          String           @id @default(uuid())
+  buildingId  String
+  building    Building         @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  levelNumber Int
+  name        String           // e.g. "Ground Floor", "1st Floor"
+  mapSvgUrl   String?
+  nodes       NavigationNode[]
+
+  @@unique([buildingId, levelNumber])
+  @@map("floors")
+}
+
+model NavigationNode {
+  id           String            @id @default(uuid())
+  buildingId   String
+  building     Building          @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floorId      String
+  floor        Floor             @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  name         String            // e.g. "Main Gate", "Admissions", "Library"
+  x            Float
+  y            Float
+  isDestination Boolean          @default(false)
+  category     String?           // e.g. "entrance", "office", "amenity", "room"
+  outgoingEdges NavigationEdge[] @relation("SourceNode")
+  incomingEdges NavigationEdge[] @relation("TargetNode")
+  qrCheckpoints QRCheckpoint[]
+  people       PersonDestination[]
+
+  @@map("navigation_nodes")
+}
+
+model NavigationEdge {
+  id         String         @id @default(uuid())
+  sourceId   String
+  sourceNode NavigationNode @relation("SourceNode", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetId   String
+  targetNode NavigationNode @relation("TargetNode", fields: [targetId], references: [id], onDelete: Cascade)
+  distance   Float          // Walkable distance in metres
+  isAccessible Boolean      @default(true) // Wheelchair / ramp accessible
+  isStairs    Boolean       @default(false)
+  isElevator  Boolean       @default(false)
+
+  @@map("navigation_edges")
+}
+
+model PositioningAnchor {
+  id          String     @id @default(uuid())
+  anchorType  AnchorType
+  hardwareId  String     @unique // e.g. MAC address, UUID, Major/Minor
+  x           Float
+  y           Float
+  floorId     String
+  txPower     Int?
+
+  @@map("positioning_anchors")
+}
+
+model QRCheckpoint {
+  id          String         @id @default(uuid())
+  publicToken String         @unique // Opaque Token: wf_ck_...
+  name        String         // e.g. "Main Gate QR 01"
+  nodeId      String
+  node        NavigationNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+
+  @@map("qr_checkpoints")
+}
+
+model PersonDestination {
+  id          String         @id @default(uuid())
+  name        String
+  title       String
+  nodeId      String
+  node        NavigationNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@map("people_destinations")
+}
+
+model VisitorSession {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  qrToken        String
+  destinationId  String?
+  startedAt      DateTime     @default(now())
+  completedAt    DateTime?
+  distanceWalked Float?
+
+  @@map("visitor_sessions")
+}
