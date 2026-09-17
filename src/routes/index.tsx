@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapPin, Route as RouteIcon, Search, Compass, AlertTriangle, Building2, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, MapPin, Route as RouteIcon } from "lucide-react";
 
 import { WayFindrHeader } from "@/components/wayfindr/WayFindrHeader";
 import { LocationBanner } from "@/components/wayfindr/LocationBanner";
@@ -28,9 +28,10 @@ import type { Destination, FloorLevel, TurnStep } from "@/lib/wayfindr-types";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
-    location: typeof search.location === "string" && search.location in DEMO_QR_LOCATIONS
-      ? search.location
-      : "main-gate",
+    location:
+      typeof search.location === "string" && search.location in DEMO_QR_LOCATIONS
+        ? search.location
+        : "main-gate",
   }),
   head: () => ({
     meta: [
@@ -82,7 +83,8 @@ function WayFindrHome() {
 
   // Active step & route metrics
   const activeStep = steps[currentStepIndex] || steps[0];
-  const remainingMetres = routeResult ? Math.max(0, routeResult.totalDistance - currentStepIndex * 15) : 0;
+  const nextStep = steps[currentStepIndex + 1];
+  const remainingMetres = routeResult ? Math.max(0, routeResult.totalMetres - currentStepIndex * 15) : 0;
   const etaMinutes = Math.max(1, Math.ceil(remainingMetres / 50));
 
   // Voice synthesis effect on step update
@@ -113,7 +115,6 @@ function WayFindrHome() {
     setIsNavigating(true);
     setCurrentStepIndex(0);
     setHasArrived(false);
-    // Focus floor on starting checkpoint or destination
     setActiveFloor(qrContext.floorId);
   };
 
@@ -160,11 +161,6 @@ function WayFindrHome() {
     stopSpeech();
   };
 
-  const handleSelectCheckpoint = (qr: typeof DEMO_QR_LOCATIONS[string]) => {
-    setLostModalOpen(false);
-    navigate({ search: { location: qr.qrId } });
-  };
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 text-[#111827]">
       {/* WayFindr Header */}
@@ -185,14 +181,13 @@ function WayFindrHome() {
 
         {/* Desktop & Kiosk Split View Grid */}
         <div className="grid gap-5 lg:grid-cols-[380px_minmax(0,1fr)] items-start">
-          
           {/* Left Column: Search & Quick Tiles */}
           <div className="space-y-4">
             {/* Step 2: 🔎 WHERE DO I WANT TO GO? Search Input */}
             <DestinationSearch
-              destinations={DEMO_DESTINATIONS}
-              search={searchQuery}
-              onSearchChange={setSearchQuery}
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              results={filteredDestinations}
               onSelectDestination={handleSelectDestination}
             />
 
@@ -221,22 +216,21 @@ function WayFindrHome() {
             <QuickDestinationGrid
               destinations={DEMO_DESTINATIONS}
               selectedId={selectedDestination?.id}
-              onSelect={handleSelectDestination}
+              onSelectDestination={handleSelectDestination}
             />
 
             {/* Turn-by-Turn Instruction Card (Visible during active navigation) */}
             {isNavigating && activeStep && (
               <NavigationInstruction
-                activeStep={activeStep}
-                stepIndex={currentStepIndex}
+                currentStep={activeStep}
+                nextStep={nextStep}
+                currentStepIndex={currentStepIndex}
                 totalSteps={steps.length}
                 remainingMetres={remainingMetres}
-                etaMinutes={etaMinutes}
-                isNavigating={isNavigating}
-                onStartNav={handleStartNavigation}
+                estimatedMinutes={etaMinutes}
                 onNextStep={handleNextStep}
                 onPrevStep={handlePrevStep}
-                onCancelNav={handleCancelNavigation}
+                onEndNavigation={handleCancelNavigation}
               />
             )}
           </div>
@@ -295,25 +289,39 @@ function WayFindrHome() {
       {selectedDestination && !isNavigating && !hasArrived && (
         <DestinationBottomSheet
           destination={selectedDestination}
+          fromName={qrContext.locationName}
           routeResult={routeResult}
-          isNavigating={isNavigating}
           onStartNavigation={handleStartNavigation}
-          onClose={() => setSelectedDestination(null)}
+          onCancel={() => setSelectedDestination(null)}
         />
       )}
 
       {/* Arrival Completion Sheet */}
       {hasArrived && selectedDestination && (
-        <ArrivalCard destination={selectedDestination} onDone={handleFinishArrival} />
+        <ArrivalCard
+          destination={selectedDestination}
+          onReset={handleFinishArrival}
+          onNavigateElse={handleFinishArrival}
+        />
       )}
 
       {/* "I'm Lost" Checkpoint Selector Modal */}
-      <LostHelpPanel
-        isOpen={lostModalOpen}
-        onClose={() => setLostModalOpen(false)}
-        qrLocations={DEMO_QR_LOCATIONS}
-        onSelectCheckpoint={handleSelectCheckpoint}
-      />
+      {lostModalOpen && (
+        <LostHelpPanel
+          onClose={() => setLostModalOpen(false)}
+          onResetToEntrance={() => {
+            navigate({ search: { location: "main-gate" } });
+            setLostModalOpen(false);
+          }}
+          onSearchFocus={() => {
+            setLostModalOpen(false);
+            const searchInput = document.querySelector(
+              'input[type="text"]'
+            ) as HTMLInputElement;
+            searchInput?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }
