@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NavigateIndexRouteImport } from './routes/navigate.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as QrIdRouteImport } from './routes/qr.$id'
 import { Route as NavigateIdRouteImport } from './routes/navigate.$id'
@@ -21,6 +22,11 @@ import { Route as AdminIdEditRouteImport } from './routes/admin.$id.edit'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NavigateIndexRoute = NavigateIndexRouteImport.update({
+  id: '/navigate/',
+  path: '/navigate/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/navigate/': typeof NavigateIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
   '/admin': typeof AdminIndexRoute
+  '/navigate': typeof NavigateIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/navigate/$id': typeof NavigateIdRoute
   '/qr/$id': typeof QrIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/navigate/': typeof NavigateIndexRoute
   '/admin/$id/edit': typeof AdminIdEditRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/navigate/$id'
     | '/qr/$id'
     | '/admin/'
+    | '/navigate/'
     | '/admin/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/navigate/$id'
     | '/qr/$id'
     | '/admin'
+    | '/navigate'
     | '/admin/$id/edit'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/navigate/$id'
     | '/qr/$id'
     | '/admin/'
+    | '/navigate/'
     | '/admin/$id/edit'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   NavigateIdRoute: typeof NavigateIdRoute
   QrIdRoute: typeof QrIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  NavigateIndexRoute: typeof NavigateIndexRoute
   AdminIdEditRoute: typeof AdminIdEditRoute
 }
 
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/navigate/': {
+      id: '/navigate/'
+      path: '/navigate'
+      fullPath: '/navigate/'
+      preLoaderRoute: typeof NavigateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   NavigateIdRoute: NavigateIdRoute,
   QrIdRoute: QrIdRoute,
   AdminIndexRoute: AdminIndexRoute,
+  NavigateIndexRoute: NavigateIndexRoute,
   AdminIdEditRoute: AdminIdEditRoute,
 }
 export const routeTree = rootRouteImport
