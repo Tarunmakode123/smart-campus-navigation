@@ -1,4 +1,4 @@
-import type { Building, Destination, IndoorNode, NavigationEdge, QRLocation } from "./wayfindr-types";
+import type { Building, Destination, IndoorNode, NavigationEdge, Person, QRLocation } from "./wayfindr-types";
 
 export const DEMO_BUILDING: Building = {
   id: "building-a",
@@ -172,6 +172,75 @@ export const DEMO_DESTINATIONS: Destination[] = [
   },
 ];
 
+export const DEMO_PEOPLE: Person[] = [
+  {
+    id: "person-tarun",
+    name: "Tarun Kumar",
+    title: "Teaching Faculty",
+    department: "Computer Science",
+    destinationId: "faculty-cabins",
+    nodeId: "node-faculty-room-201",
+    roomNumber: "Cabin 201",
+    floorName: "First Floor",
+    buildingName: "Building A",
+  },
+  {
+    id: "person-tanya",
+    name: "Tanya Sharma",
+    title: "Admissions Counselor",
+    department: "Student Admissions",
+    destinationId: "admissions",
+    nodeId: "node-admissions",
+    roomNumber: "Room G-04",
+    floorName: "Ground Floor",
+    buildingName: "Building A",
+  },
+  {
+    id: "person-[#rahul]",
+    name: "Rahul Verma",
+    title: "Chief Administrator",
+    department: "Reception Desk",
+    destinationId: "reception",
+    nodeId: "node-reception",
+    roomNumber: "Desk 102",
+    floorName: "Ground Floor",
+    buildingName: "Building A",
+  },
+  {
+    id: "person-[#ananya]",
+    name: "Dr. Ananya Roy",
+    title: "Campus Director",
+    department: "Directorate",
+    destinationId: "director-office",
+    nodeId: "node-director-office",
+    roomNumber: "Suite 301",
+    floorName: "Second Floor",
+    buildingName: "Building A",
+  },
+  {
+    id: "person-priya",
+    name: "Priya Patel",
+    title: "Head Librarian",
+    department: "Library & Information Services",
+    destinationId: "library",
+    nodeId: "node-library",
+    roomNumber: "Room G-10",
+    floorName: "Ground Floor",
+    buildingName: "Building A",
+  },
+  {
+    id: "person-[#amit]",
+    name: "Amit Shah",
+    title: "Kitchen Supervisor",
+    department: "Dining & Refreshments",
+    destinationId: "kitchen",
+    nodeId: "node-kitchen",
+    roomNumber: "Kitchen G-02",
+    floorName: "Ground Floor",
+    buildingName: "Building A",
+  },
+];
+
 export const DEMO_QR_LOCATIONS: Record<string, QRLocation> = {
   "main-gate": {
     qrId: "main-gate",
@@ -224,6 +293,7 @@ export const DEMO_EDGES: NavigationEdge[] = [
 
   // First Floor Edges
   { from: "node-stairs-1", to: "node-faculty-cabins", distance: 30, edgeType: "walk" },
+  { from: "node-[#faculty-cabins]", to: "node-faculty-room-201", distance: 10, edgeType: "walk" },
   { from: "node-elevator-1", to: "node-faculty-room-201", distance: 25, edgeType: "walk" },
 
   // Second Floor Edges

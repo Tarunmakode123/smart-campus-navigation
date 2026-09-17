@@ -35,6 +35,25 @@ export interface Destination {
   roomNumber?: string;
 }
 
+export interface Person {
+  id: string;
+  name: string;
+  title: string;
+  department: string;
+  destinationId: string;
+  nodeId: string;
+  roomNumber: string;
+  floorName: string;
+  buildingName: string;
+  avatar?: string;
+}
+
+export interface VisitorDetails {
+  startingLocation: QRLocation;
+  destination: Destination | null;
+  person: Person | null;
+}
+
 export interface QRLocation {
   qrId: string; // e.g. "main-gate", "reception", "floor-1"
   nodeId: string;
@@ -82,6 +101,32 @@ export interface RouteResult {
   nodes: string[];
   edges: NavigationEdge[];
   totalMetres: number;
+  totalDistance?: number;
   estimatedMinutes: number;
   steps: TurnStep[];
+}
+
+export type PositionSource = "QR" | "GPS" | "SENSOR" | "MAP_MATCHED" | "SIMULATION";
+export type AccuracyState = "high" | "medium" | "low" | "weak";
+
+export interface NavigationPosition {
+  x: number; // 0-100 indoor map X percentage
+  y: number; // 0-100 indoor map Y percentage
+  nodeId?: string;
+  floorId: FloorLevel;
+  latitude?: number;
+  longitude?: number;
+  heading?: number; // 0-360 degrees orientation compass heading
+  accuracyMetres?: number;
+  accuracyState: AccuracyState;
+  source: PositionSource;
+  timestamp: number;
+}
+
+export interface AutocompleteItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  type: "destination" | "person";
+  originalObj: Destination | Person;
 }

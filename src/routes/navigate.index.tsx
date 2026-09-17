@@ -1,30 +1,18 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeft, MapPin, Route as RouteIcon } from "lucide-react";
+import { ArrowLeft, Compass } from "lucide-react";
 
 import { WayFindrHeader } from "@/components/wayfindr/WayFindrHeader";
-import { LocationBanner } from "@/components/wayfindr/LocationBanner";
-import { DestinationSearch } from "@/components/wayfindr/DestinationSearch";
-import { QuickDestinationGrid } from "@/components/wayfindr/QuickDestinationGrid";
-import { IndoorMap } from "@/components/wayfindr/IndoorMap";
-import { DestinationBottomSheet } from "@/components/wayfindr/DestinationBottomSheet";
-import { NavigationInstruction } from "@/components/wayfindr/NavigationInstruction";
+import { VisitorForm } from "@/components/wayfindr/VisitorForm";
+import { LocationPermissionBanner } from "@/components/wayfindr/LocationPermissionBanner";
+import { LiveNavigationUI } from "@/components/wayfindr/LiveNavigationUI";
 import { ArrivalCard } from "@/components/wayfindr/ArrivalCard";
 import { LostHelpPanel } from "@/components/wayfindr/LostHelpPanel";
 
-import {
-  DEMO_DESTINATIONS,
-  DEMO_EDGES,
-  DEMO_NODES,
-  DEMO_QR_LOCATIONS,
-} from "@/lib/wayfindr-data";
-import {
-  findShortestPath,
-  generateTurnSteps,
-  searchDestinations,
-} from "@/lib/wayfindr-engine";
-import { speakTurnInstruction, stopSpeech } from "@/lib/speech";
-import type { Destination, FloorLevel, TurnStep } from "@/lib/wayfindr-types";
+import { DEMO_QR_LOCATIONS } from "@/lib/wayfindr-data";
+import { positioningService } from "@/services/positioning/PositioningService";
+import { calculateRouteFromPosition } from "@/services/routeService";
+import type { Destination, NavigationPosition, Person, RouteResult } from "@/lib/wayfindr-types";
 
 export const Route = createFileRoute("/navigate/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -35,11 +23,11 @@ export const Route = createFileRoute("/navigate/")({
   }),
   head: () => ({
     meta: [
-      { title: "WayFindr — Live Indoor Navigation" },
+      { title: "WayFindr — Live Indoor Navigation & Visitor Entry" },
       {
         name: "description",
         content:
-          "Scan entrance QR, search destination, and follow live turn-by-turn map guidance.",
+          "Scan entrance QR, specify your destination or host, and follow live turn-by-turn indoor navigation.",
       },
     ],
   }),
@@ -53,112 +41,64 @@ function WayFindrNavigateApp() {
   // QR Checkpoint state derived from URL parameter
   const qrContext = DEMO_QR_LOCATIONS[location] || DEMO_QR_LOCATIONS["main-gate"];
 
-  // Search & Navigation States
-  const [searchQuery, setSearchQuery] = useState("");
+  // Navigation Application Flow States
+  const [appState, setAppState] = useState<
+    "VISITOR_FORM" | "LIVE_NAVIGATION" | "ARRIVED"
+  >("VISITOR_FORM");
+
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [currentPos, setCurrentPos] = useState<NavigationPosition>(() =>
+    positioningService.initializeFromQR(qrContext.qrId)
+  );
   const [lostModalOpen, setLostModalOpen] = useState(false);
-  const [activeFloor, setActiveFloor] = useState<FloorLevel>(qrContext.floorId);
-  const [hasArrived, setHasArrived] = useState(false);
-  const [showDirectoryMap, setShowDirectoryMap] = useState(false);
 
-  // Sync active floor if checkpoint location changes
+  // Initialize QR location anchor on change
   useEffect(() => {
-    setActiveFloor(qrContext.floorId);
-  }, [qrContext.floorId]);
+    const initPos = positioningService.initializeFromQR(qrContext.qrId);
+    setCurrentPos(initPos);
+  }, [qrContext.qrId]);
 
-  // Calculate Shortest Path Route
-  const routeResult = useMemo(() => {
-    if (!selectedDestination) return null;
-    return findShortestPath(qrContext.nodeId, selectedDestination.nodeId, DEMO_NODES, DEMO_EDGES);
-  }, [qrContext.nodeId, selectedDestination]);
-
-  // Generate Turn-by-Turn Guidance Steps
-  const steps: TurnStep[] = useMemo(() => {
-    if (!routeResult || !selectedDestination) return [];
-    return generateTurnSteps(routeResult, DEMO_NODES, selectedDestination.name);
-  }, [routeResult, selectedDestination]);
-
-  // Active step & route metrics
-  const activeStep = steps[currentStepIndex] || steps[0];
-  const nextStep = steps[currentStepIndex + 1];
-  const remainingMetres = routeResult ? Math.max(0, routeResult.totalMetres - currentStepIndex * 15) : 0;
-  const etaMinutes = Math.max(1, Math.ceil(remainingMetres / 50));
-
-  // Voice synthesis effect on step update
+  // Subscribe to live positioning updates (GPS, Sensors, Simulation)
   useEffect(() => {
-    if (isNavigating && voiceEnabled && activeStep) {
-      speakTurnInstruction(activeStep);
-    }
-  }, [isNavigating, currentStepIndex, voiceEnabled, activeStep]);
+    const unsubscribe = positioningService.subscribe((updatedPos) => {
+      setCurrentPos(updatedPos);
+    });
+    return () => {
+      unsubscribe();
+      positioningService.stopAll();
+    };
+  }, []);
 
-  // Search results calculation
-  const filteredDestinations = useMemo(() => {
-    return searchDestinations(searchQuery, DEMO_DESTINATIONS);
-  }, [searchQuery]);
+  // Calculate shortest path route from current live position to destination
+  const routeResult: RouteResult | null = useMemo(() => {
+    if (!selectedDestination || !currentPos) return null;
+    return calculateRouteFromPosition(currentPos, selectedDestination);
+  }, [currentPos, selectedDestination]);
 
-  // Destination Selection Handler
-  const handleSelectDestination = (dest: Destination) => {
+  // Handle Form Submission -> Start Live Navigation
+  const handleStartNavigation = (dest: Destination, person: Person | null) => {
     setSelectedDestination(dest);
-    setSearchQuery("");
-    setIsNavigating(false);
-    setCurrentStepIndex(0);
-    setHasArrived(false);
-    setActiveFloor(dest.floorId);
-  };
-
-  // Start Navigation Handler
-  const handleStartNavigation = () => {
-    if (!selectedDestination) return;
-    setIsNavigating(true);
-    setCurrentStepIndex(0);
-    setHasArrived(false);
-    setActiveFloor(qrContext.floorId);
-  };
-
-  // Turn Step Navigation Handlers
-  const handleNextStep = () => {
-    if (currentStepIndex < steps.length - 1) {
-      const nextIndex = currentStepIndex + 1;
-      setCurrentStepIndex(nextIndex);
-      const nextNodeId = routeResult?.nodes[nextIndex];
-      const nextNode = DEMO_NODES.find((n) => n.id === nextNodeId);
-      if (nextNode) {
-        setActiveFloor(nextNode.floorId);
-      }
-    } else {
-      // Reached final destination step
-      setIsNavigating(false);
-      setHasArrived(true);
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (currentStepIndex > 0) {
-      const prevIndex = currentStepIndex - 1;
-      setCurrentStepIndex(prevIndex);
-      const prevNodeId = routeResult?.nodes[prevIndex];
-      const prevNode = DEMO_NODES.find((n) => n.id === prevNodeId);
-      if (prevNode) {
-        setActiveFloor(prevNode.floorId);
-      }
-    }
+    setSelectedPerson(person);
+    setAppState("LIVE_NAVIGATION");
   };
 
   const handleCancelNavigation = () => {
-    setIsNavigating(false);
-    setCurrentStepIndex(0);
-    stopSpeech();
+    positioningService.stopDevSimulation();
+    setAppState("VISITOR_FORM");
+    setSelectedDestination(null);
+    setSelectedPerson(null);
+  };
+
+  const handleArrival = () => {
+    positioningService.stopDevSimulation();
+    setAppState("ARRIVED");
   };
 
   const handleFinishArrival = () => {
-    setHasArrived(false);
+    setAppState("VISITOR_FORM");
     setSelectedDestination(null);
-    setIsNavigating(false);
-    setCurrentStepIndex(0);
-    stopSpeech();
+    setSelectedPerson(null);
   };
 
   return (
@@ -166,16 +106,12 @@ function WayFindrNavigateApp() {
       {/* WayFindr Header */}
       <WayFindrHeader
         onOpenLostModal={() => setLostModalOpen(true)}
-        voiceEnabled={voiceEnabled}
-        onToggleVoice={() => {
-          const next = !voiceEnabled;
-          setVoiceEnabled(next);
-          if (!next) stopSpeech();
-        }}
+        voiceEnabled={true}
+        onToggleVoice={() => {}}
       />
 
-      {/* Main Container - Mobile First Layout / Desktop Split Kiosk */}
-      <main className="mx-auto max-w-6xl px-4 pt-3 space-y-4">
+      {/* Main Container */}
+      <main className="mx-auto max-w-5xl px-4 pt-3 space-y-4">
         {/* Navigation Application Return Link */}
         <div className="flex items-center justify-between">
           <Link
@@ -185,140 +121,54 @@ function WayFindrNavigateApp() {
             <ArrowLeft className="h-4 w-4 text-[#F97316]" /> Back to WayFindr Overview
           </Link>
           <span className="rounded-full bg-[#111827] px-2.5 py-0.5 font-mono text-[10px] font-bold text-white uppercase tracking-wider">
-            LIVE NAVIGATION APP MODE
+            {appState === "LIVE_NAVIGATION" ? "● LIVE NAVIGATION MODE" : "VISITOR ENTRY MODE"}
           </span>
         </div>
 
-        {/* Step 1: 📍 WHERE AM I? Banner */}
-        <LocationBanner qrContext={qrContext} />
+        {/* Device Location Permission Request Banner */}
+        {appState === "VISITOR_FORM" && (
+          <LocationPermissionBanner onPermissionChange={() => {}} />
+        )}
 
-        {/* Desktop & Kiosk Split View Grid */}
-        <div className="grid gap-5 lg:grid-cols-[380px_minmax(0,1fr)] items-start">
-          {/* Left Column: Search & Quick Tiles */}
-          <div className="space-y-4">
-            {/* Step 2: 🔎 WHERE DO I WANT TO GO? Search Input */}
-            <DestinationSearch
-              query={searchQuery}
-              onQueryChange={setSearchQuery}
-              results={filteredDestinations}
-              onSelectDestination={handleSelectDestination}
-            />
+        {/* Stage 1: Visitor Entry & Destination Form */}
+        {appState === "VISITOR_FORM" && (
+          <VisitorForm
+            startingLocation={qrContext}
+            onStartNavigation={handleStartNavigation}
+          />
+        )}
 
-            {/* Case B Handling: Search typed but location not found in database */}
-            {searchQuery.trim() !== "" && filteredDestinations.length === 0 && (
-              <div className="rounded-xl border-2 border-dashed border-[#F97316]/40 bg-white p-5 text-center shadow-xs">
-                <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-[#111827] text-[#F97316]">
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
-                <h3 className="mt-2 font-display text-sm font-extrabold text-[#111827]">
-                  Location &quot;{searchQuery}&quot; is not present in our system.
-                </h3>
-                <p className="mt-1 font-sans text-xs text-[#6B7280]">
-                  Please verify room name or explore registered locations directly on the map.
-                </p>
-                <button
-                  onClick={() => setShowDirectoryMap(true)}
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#111827] px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#111827]/90 transition-colors"
-                >
-                  <RouteIcon className="h-4 w-4 text-[#F97316]" /> View Interactive Map Directory
-                </button>
-              </div>
-            )}
+        {/* Stage 2: Live Navigation Mode UI */}
+        {appState === "LIVE_NAVIGATION" && selectedDestination && routeResult && (
+          <LiveNavigationUI
+            startingLocationName={qrContext.locationName}
+            destination={selectedDestination}
+            person={selectedPerson}
+            currentPosition={currentPos}
+            routeResult={routeResult}
+            onRecenter={() => {
+              // Recenter map logic
+              setCurrentPos((prev) => ({ ...prev, timestamp: Date.now() }));
+            }}
+            onCancelNavigation={handleCancelNavigation}
+            onArrival={handleArrival}
+            onRouteRecalculated={() => {
+              // Recalculate route if position deviates
+            }}
+          />
+        )}
 
-            {/* Quick Destination Grid (Admissions, Library, Faculty Cabins, Kitchen, Bedrooms, Bhagwan Room) */}
-            <QuickDestinationGrid
-              destinations={DEMO_DESTINATIONS}
-              selectedId={selectedDestination?.id}
-              onSelectDestination={handleSelectDestination}
-            />
-
-            {/* Turn-by-Turn Instruction Card (Visible during active navigation) */}
-            {isNavigating && activeStep && (
-              <NavigationInstruction
-                currentStep={activeStep}
-                nextStep={nextStep}
-                currentStepIndex={currentStepIndex}
-                totalSteps={steps.length}
-                remainingMetres={remainingMetres}
-                estimatedMinutes={etaMinutes}
-                onNextStep={handleNextStep}
-                onPrevStep={handlePrevStep}
-                onEndNavigation={handleCancelNavigation}
-              />
-            )}
-          </div>
-
-          {/* Right Column: Step 3: 🗺️ HOW DO I GET THERE? Interactive Vector Map */}
-          <div className="space-y-4">
-            <IndoorMap
-              nodes={DEMO_NODES}
-              currentPosNodeId={qrContext.nodeId}
-              selectedDestination={selectedDestination}
-              routeResult={routeResult}
-              currentStepIndex={currentStepIndex}
-              activeFloor={activeFloor}
-              onSelectFloor={setActiveFloor}
-            />
-
-            {/* Case B Full Directory View Drawer/Panel */}
-            {showDirectoryMap && (
-              <div className="rounded-xl border border-[#111827]/12 bg-white p-4 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-[#111827]/10 pb-2">
-                  <span className="font-display text-xs font-extrabold uppercase text-[#111827]">
-                    BUILDING LOCATIONS DIRECTORY
-                  </span>
-                  <button
-                    onClick={() => setShowDirectoryMap(false)}
-                    className="font-mono text-xs text-[#6B7280] hover:text-[#111827]"
-                  >
-                    Close Directory [X]
-                  </button>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {DEMO_DESTINATIONS.map((dest) => (
-                    <button
-                      key={dest.id}
-                      onClick={() => {
-                        handleSelectDestination(dest);
-                        setShowDirectoryMap(false);
-                      }}
-                      className="flex items-center justify-between rounded-lg border border-[#111827]/10 p-2.5 text-left transition-colors hover:border-[#F97316] hover:bg-[#F8FAFC]"
-                    >
-                      <div>
-                        <div className="font-display text-xs font-bold text-[#111827]">{dest.name}</div>
-                        <div className="font-mono text-[10px] text-[#6B7280]">{dest.floorName}</div>
-                      </div>
-                      <MapPin className="h-4 w-4 shrink-0 text-[#F97316]" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Stage 3: Arrival Completion Card */}
+        {appState === "ARRIVED" && selectedDestination && (
+          <ArrivalCard
+            destination={selectedDestination}
+            onReset={handleFinishArrival}
+            onNavigateElse={handleFinishArrival}
+          />
+        )}
       </main>
 
-      {/* Destination Bottom Sheet Modal (Preview before starting route) */}
-      {selectedDestination && !isNavigating && !hasArrived && (
-        <DestinationBottomSheet
-          destination={selectedDestination}
-          fromName={qrContext.locationName}
-          routeResult={routeResult}
-          onStartNavigation={handleStartNavigation}
-          onCancel={() => setSelectedDestination(null)}
-        />
-      )}
-
-      {/* Arrival Completion Sheet */}
-      {hasArrived && selectedDestination && (
-        <ArrivalCard
-          destination={selectedDestination}
-          onReset={handleFinishArrival}
-          onNavigateElse={handleFinishArrival}
-        />
-      )}
-
-      {/* "I'm Lost" Checkpoint Selector Modal */}
+      {/* "I'm Lost" Help Modal */}
       {lostModalOpen && (
         <LostHelpPanel
           onClose={() => setLostModalOpen(false)}
@@ -328,10 +178,7 @@ function WayFindrNavigateApp() {
           }}
           onSearchFocus={() => {
             setLostModalOpen(false);
-            const searchInput = document.querySelector(
-              'input[type="text"]'
-            ) as HTMLInputElement;
-            searchInput?.focus();
+            setAppState("VISITOR_FORM");
           }}
         />
       )}
